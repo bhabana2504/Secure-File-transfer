@@ -192,12 +192,7 @@ The **History** tab shows the last 50 transfers. History is synced to newly conn
 
 ---
 
-## Contributing
-
-1. Fork the repository
-2. Create a branch for your feature
-3. Commit your changes
-4. Push and open a Pull Request
+## This project represents a foundational implementation of a secure, real-time file transfer system, with significant scope for further enhancements in scalability, security, and user experience.
 
 ---
 
