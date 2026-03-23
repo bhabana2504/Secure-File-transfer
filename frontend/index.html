@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureTransfer</title>
+
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+  <!-- Share Tech Mono for terminal feel, Inter for UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- ── INLINE SVG ICON SYSTEM ─────────────────────────────────────────── -->
+  <!-- Referenced as <svg class="icon"><use href="#icon-NAME"/></svg>        -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </symbol>
+    <symbol id="icon-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
+    </symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </symbol>
+    <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+    </symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="8 17 12 21 16 17"/><line x1="12" y1="21" x2="12" y2="12"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/>
+    </symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+    </symbol>
+    <symbol id="icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 019.9-1"/>
+    </symbol>
+    <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+    </symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+    </symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+    </symbol>
+    <symbol id="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+    </symbol>
+    <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+    </symbol>
+    <symbol id="icon-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+    </symbol>
+    <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </symbol>
+    <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+    </symbol>
+    <symbol id="icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>
+    </symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/>
+    </symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </symbol>
+    <symbol id="icon-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+    </symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </symbol>
+    <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+    </symbol>
+    <symbol id="icon-win-min" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </symbol>
+    <symbol id="icon-win-max" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="1"/>
+    </symbol>
+    <symbol id="icon-win-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </symbol>
+    <symbol id="icon-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 16 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+    </symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+    </symbol>
+  </svg>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       BLACK & GREEN — Terminal / Matrix Hacker Aesthetic
+       Fonts: IBM Plex Mono + Share Tech Mono + IBM Plex Sans
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      --green-bright: #00ff41;
+      --green-mid:    #00c832;
+      --green-dim:    #00922a;
+      --green-muted:  #0a4a1a;
+      --green-glow:   rgba(0,255,65,0.18);
+      --green-glow-sm:rgba(0,255,65,0.08);
+
+      --bg-void:      #000000;
+      --bg-base:      #040a04;
+      --bg-surface:   #080f08;
+      --bg-card:      #0b160b;
+      --bg-hover:     #0e1e0e;
+      --bg-elevated:  #111f11;
+
+      --border:        rgba(0,200,50,0.12);
+      --border-accent: rgba(0,255,65,0.35);
+      --border-bright: rgba(0,255,65,0.6);
+
+      --text-primary:  #d4ffdc;
+      --text-secondary:#7ee692;
+      --text-muted:    #4db863;
+      --text-dim:      #2a7a3a;
+
+      --accent:        var(--green-bright);
+      --accent-2:      #00e5ff;
+      --success:       #00ff41;
+      --warning:       #ffcc00;
+      --danger:        #ff2244;
+      --danger-glow:   rgba(255,34,68,0.2);
+      --success-glow:  rgba(0,255,65,0.15);
+
+      --sidebar-w:     240px;
+      --titlebar-h:    38px;
+      --radius:        4px;
+      --radius-sm:     2px;
+
+      --font-display: 'Share Tech Mono', monospace;
+      --font-main:    'IBM Plex Sans', sans-serif;
+      --font-mono:    'IBM Plex Mono', monospace;
+
+      --shadow:        0 4px 32px rgba(0,0,0,0.8);
+      --shadow-green:  0 0 20px rgba(0,255,65,0.12);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       LIGHT MODE — Clean phosphor-on-white terminal
+    ═══════════════════════════════════════════════════════ */
+    body.light-mode {
+      --green-bright: #007a1e;
+      --green-mid:    #005c16;
+      --green-dim:    #004010;
+      --green-muted:  #d4eeda;
+      --green-glow:   rgba(0,122,30,0.12);
+      --green-glow-sm:rgba(0,122,30,0.06);
+
+      --bg-void:      #f4f8f4;
+      --bg-base:      #f0f5f0;
+      --bg-surface:   #e8f0e8;
+      --bg-card:      #ffffff;
+      --bg-hover:     #eaf3ea;
+      --bg-elevated:  #f7fbf7;
+
+      --border:        rgba(0,100,30,0.13);
+      --border-accent: rgba(0,122,30,0.35);
+      --border-bright: rgba(0,122,30,0.6);
+
+      --text-primary:  #0a1f0d;
+      --text-secondary:#1a5c28;
+      --text-muted:    #2d7a3a;
+      --text-dim:      #5aab6a;
+
+      --accent:        #007a1e;
+      --accent-2:      #0077aa;
+      --success:       #007a1e;
+      --warning:       #8a6000;
+      --danger:        #cc0022;
+      --danger-glow:   rgba(204,0,34,0.15);
+      --success-glow:  rgba(0,122,30,0.12);
+
+      --shadow:        0 4px 24px rgba(0,80,20,0.1);
+      --shadow-green:  0 0 16px rgba(0,122,30,0.08);
+    }
+
+    /* Override hard-coded colors in light mode */
+    body.light-mode .file-name         { color: #0a2010; }
+    body.light-mode .file-size         { color: #2d7a3a; }
+    body.light-mode .incoming-file .file-info .name { color: #0a2010; }
+    body.light-mode .incoming-file .file-info .meta { color: #2d7a3a; }
+    body.light-mode #drop-zone h3      { color: #005c16; }
+    body.light-mode #drop-zone p       { color: #2d7a3a; }
+    body.light-mode .log-msg           { color: #2d7a3a; }
+    body.light-mode .stat-value        { text-shadow: none; }
+    body.light-mode .page-header h1    { text-shadow: none; }
+    body.light-mode .titlebar-logo     { text-shadow: none; }
+    body.light-mode .toggle-label      { color: #0a2010; }
+    body.light-mode .toggle-sub        { color: #2d7a3a; }
+    body.light-mode .form-input        { background: #f7fbf7; color: #0a2010; }
+    body.light-mode .form-input::placeholder { color: #aacaaa; }
+    body.light-mode .nav-item          { color: #2d7a3a; }
+    body.light-mode .nav-item:hover    { color: #005c16; background: #eaf3ea; }
+    body.light-mode .nav-item.active   { color: #007a1e; background: rgba(0,122,30,0.06); }
+    body.light-mode .sidebar-section-label { color: #5aab6a; }
+    body.light-mode .client-id         { color: #005c16; }
+    body.light-mode #log-output        { background: #f4f8f4; }
+    body.light-mode .toast             { background: #fff; box-shadow: 0 4px 24px rgba(0,80,20,0.1); }
+    body.light-mode .enc-active        { color: #007a1e; }
+    body.light-mode .enc-active::before{ background: #007a1e; box-shadow: 0 0 6px #007a1e; }
+    body.light-mode .stat-label        { color: #2d7a3a; }
+    body.light-mode .history-size,
+    body.light-mode .history-time      { color: #2d7a3a; }
+    body.light-mode .history-name      { color: #0a2010; }
+    body.light-mode .btn-ghost         { color: #1a5c28; border-color: rgba(0,100,30,0.25); }
+    body.light-mode .btn-ghost:hover   { background: #eaf3ea; color: #005c16; }
+    body.light-mode body::after        { display: none; } /* no scanlines in light mode */
+
+    /* Smooth theme transition */
+    body, #titlebar, #sidebar, #main, .card, .stat-card,
+    .nav-item, .form-input, .toggle, #log-container,
+    #log-output, .file-item, .incoming-file, .toast,
+    .server-status-indicator, .client-row, .history-item {
+      transition: background-color 0.25s ease, border-color 0.25s ease,
+                  color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* ─── SCANLINE OVERLAY ─────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+    }
+
+    /* ─── GRID BACKGROUND PATTERN ──────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,200,50,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,50,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      transition: none;
+    }
+
+    button { cursor: pointer; font-family: var(--font-mono); border: none; outline: none; }
+    input, select { font-family: var(--font-mono); outline: none; }
+
+    /* SVG icon helper */
+    .icon {
+      display: inline-block; width: 1em; height: 1em;
+      vertical-align: -0.15em; flex-shrink: 0;
+    }
+    .icon-sm  { width: 14px; height: 14px; }
+    .icon-md  { width: 18px; height: 18px; }
+    .icon-lg  { width: 24px; height: 24px; }
+    .icon-xl  { width: 40px; height: 40px; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg-surface); }
+    ::-webkit-scrollbar-thumb { background: var(--green-muted); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--green-dim); }
+
+    /* ═══════════════════════════════════════════════════════
+       TITLEBAR
+    ═══════════════════════════════════════════════════════ */
+    #titlebar {
+      height: var(--titlebar-h);
+      background: var(--bg-void);
+      border-bottom: 1px solid var(--border-accent);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px 0 12px;
+      -webkit-app-region: drag;
+      user-select: none;
+      position: relative; z-index: 100;
+      flex-shrink: 0;
+    }
+    /* Glowing bottom border on titlebar */
+    #titlebar::after {
+      content: '';
+      position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green-bright), transparent);
+      opacity: 0.6;
+    }
+
+    .titlebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-display);
+      font-size: 13px; letter-spacing: 0.14em;
+      color: var(--green-bright);
+      text-shadow: 0 0 12px var(--green-bright);
+    }
+    .logo-text { letter-spacing: 0.14em; }
+    .titlebar-logo .logo-icon {
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 5px rgba(0,255,65,0.6));
+    }
+    /* Spinning outer ring */
+    .logo-ring {
+      transform-origin: 11px 11px;
+      animation: logo-spin 8s linear infinite;
+    }
+    @keyframes logo-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    body.light-mode .titlebar-logo .logo-icon { filter: drop-shadow(0 0 4px rgba(0,122,30,0.4)); }
+    body.light-mode .titlebar-logo circle,
+    body.light-mode .titlebar-logo rect,
+    body.light-mode .titlebar-logo path { stroke: #007a1e !important; }
+    body.light-mode .titlebar-logo circle[fill="#00ff41"] { fill: #007a1e !important; }
+
+    .titlebar-status {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text-dim); transition: all 0.3s;
+    }
+    .status-dot.connected {
+      background: var(--green-bright);
+      box-shadow: 0 0 6px var(--green-bright);
+      animation: blink-dot 3s infinite;
+    }
+    @keyframes blink-dot {
+      0%,90%,100% { opacity: 1; }
+      95% { opacity: 0.3; }
+    }
+    .status-dot.error { background: var(--danger); }
+
+    .titlebar-controls {
+      display: flex; align-items: center; gap: 2px;
+      -webkit-app-region: no-drag;
+    }
+    .tb-divider {
+      width: 1px; height: 16px;
+      background: var(--border-accent);
+      margin: 0 5px; opacity: 0.5; flex-shrink: 0;
+    }
+    .tb-btn {
+      width: 28px; height: 28px;
+      background: transparent;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius);
+      color: #3a6644;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tb-btn:hover { background: rgba(0,255,65,0.08); color: var(--green-bright); }
+    .tb-btn.close:hover { background: rgba(255,34,68,0.15); color: #ff5f57; }
+    .tb-btn.theme-btn { color: var(--text-muted); }
+    .tb-btn.theme-btn:hover { color: var(--green-bright); background: var(--green-glow-sm); }
+    body.light-mode .tb-btn:hover { background: rgba(0,122,30,0.08); color: var(--green-bright); }
+    body.light-mode .tb-btn.close:hover { background: rgba(204,0,34,0.1); color: #cc0022; }
+    .tb-btn svg { width: 13px; height: 13px; }
+
+    /* ═══════════════════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════════════════ */
+    #app {
+      display: flex;
+      height: calc(100vh - var(--titlebar-h));
+      overflow: hidden;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-accent);
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+      padding: 16px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    #sidebar::after {
+      content: '';
+      position: absolute; top: 0; right: -1px; bottom: 0; width: 1px;
+      background: linear-gradient(180deg, transparent, var(--green-dim), transparent);
+      opacity: 0.5;
+    }
+
+    .sidebar-section-label {
+      font-family: var(--font-mono);
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: #3a7a4a;
+      padding: 10px 18px 5px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; margin: 1px 8px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: #5aab6a;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .nav-item:hover {
+      color: var(--green-mid);
+      background: var(--bg-hover);
+      border-color: var(--border);
+    }
+    .nav-item.active {
+      color: var(--green-bright);
+      background: var(--green-glow-sm);
+      border-color: var(--border-accent);
+      text-shadow: 0 0 8px rgba(0,255,65,0.5);
+    }
+    /* Active indicator bar */
+    .nav-item.active::before {
+      content: '';
+      position: absolute; left: -9px; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 60%;
+      background: var(--green-bright);
+      box-shadow: 0 0 6px var(--green-bright);
+    }
+    .nav-item .nav-icon {
+      width: 16px; height: 16px; flex-shrink: 0;
+      opacity: 0.7;
+    }
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .nav-item .nav-badge {
+      margin-left: auto;
+      background: var(--green-muted);
+      color: var(--green-bright);
+      border: 1px solid var(--border-accent);
+      font-size: 9px; font-family: var(--font-mono);
+      padding: 1px 6px; border-radius: 2px;
+      min-width: 18px; text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto; padding: 12px 8px;
+      border-top: 1px solid var(--border);
+    }
+    .client-info {
+      padding: 9px 11px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .client-info-label {
+      font-family: var(--font-mono); font-size: 8.5px;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em;
+    }
+    .client-id {
+      font-family: var(--font-mono); font-size: 10.5px;
+      color: var(--green-mid); margin-top: 3px;
+    }
+
+    /* ── Main ────────────────────────────────────────────── */
+    #main {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; background: var(--bg-base);
+    }
+
+    .page-header {
+      padding: 18px 26px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+    }
+    /* Subtle bottom glow line */
+    .page-header::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-accent), transparent);
+    }
+    .page-header h1 {
+      font-family: var(--font-display);
+      font-size: 16px; letter-spacing: 0.1em;
+      color: var(--green-bright);
+      text-shadow: 0 0 12px rgba(0,255,65,0.4);
+    }
+    .page-header p {
+      font-family: var(--font-mono); font-size: 11px;
+      color: #4db863; margin-top: 4px; letter-spacing: 0.03em;
+    }
+
+    .page-content { flex: 1; overflow-y: auto; padding: 22px 26px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ═══════════════════════════════════════════════════════
+       CARDS
+    ═══════════════════════════════════════════════════════ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Corner bracket decoration */
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 12px; height: 12px;
+      border-top: 1px solid var(--green-dim);
+      border-left: 1px solid var(--green-dim);
+    }
+    .card::after {
+      content: '';
+      position: absolute; bottom: 0; right: 0;
+      width: 12px; height: 12px;
+      border-bottom: 1px solid var(--green-dim);
+      border-right: 1px solid var(--green-dim);
+    }
+    .card:hover { border-color: var(--border-accent); }
+
+    .card-title {
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .icon { color: var(--green-dim); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* ═══════════════════════════════════════════════════════
+       STAT CARDS
+    ═══════════════════════════════════════════════════════ */
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green-mid), transparent);
+    }
+    .stat-card::after { display: none; }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 28px; color: var(--green-bright);
+      text-shadow: 0 0 16px rgba(0,255,65,0.5);
+      letter-spacing: 0.04em;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px; color: #4db863;
+      text-transform: uppercase; letter-spacing: 0.14em; margin-top: 6px;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       DROP ZONE
+    ═══════════════════════════════════════════════════════ */
+    #drop-zone {
+      border: 1px dashed var(--border-accent);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      position: relative;
+      background: var(--bg-card);
+      margin-bottom: 16px;
+    }
+    #drop-zone:hover, #drop-zone.drag-over {
+      border-color: var(--green-bright);
+      background: var(--green-glow-sm);
+      box-shadow: 0 0 32px var(--green-glow), inset 0 0 24px rgba(0,255,65,0.04);
+      transform: scale(1.025);
+    }
+    #drop-zone:active { transform: scale(0.98); }
+    #drop-zone .drop-icon {
+      color: #2a9c44;
+      margin-bottom: 14px;
+      display: flex; justify-content: center;
+      transition: color 0.2s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #drop-zone:hover .drop-icon {
+      color: var(--green-bright);
+      transform: scale(1.15) translateY(-3px);
+    }
+    #drop-zone h3 {
+      font-family: var(--font-display);
+      font-size: 14px; letter-spacing: 0.1em;
+      color: #7ee692; margin-bottom: 8px;
+    }
+    #drop-zone p {
+      font-family: var(--font-mono); font-size: 11px;
+      color: #4db863;
+    }
+    #drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FILE QUEUE
+    ═══════════════════════════════════════════════════════ */
+    #file-queue { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .file-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--green-dim);
+      border-radius: var(--radius);
+      padding: 9px 13px;
+      animation: slideIn 0.18s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .file-icon { color: var(--green-dim); flex-shrink: 0; }
+    .file-meta { flex: 1; min-width: 0; }
+    .file-name {
+      font-family: var(--font-mono); font-size: 12px;
+      color: #c8ffce;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .file-size {
+      font-family: var(--font-mono); font-size: 10px;
+      color: #4db863; margin-top: 2px;
+    }
+    .file-remove {
+      width: 24px; height: 24px; border-radius: var(--radius);
+      background: rgba(255,34,68,0.08);
+      color: var(--danger);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .file-remove:hover { background: var(--danger); color: #000; }
+
+    /* ═══════════════════════════════════════════════════════
+       PROGRESS BAR
+    ═══════════════════════════════════════════════════════ */
+    .progress-wrap { margin: 12px 0; }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 10.5px;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .progress-bar {
+      height: 4px; background: var(--bg-elevated);
+      border-radius: 0; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--green-bright);
+      box-shadow: 0 0 8px var(--green-bright);
+      transition: width 0.3s ease; width: 0%;
+      position: relative;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute; right: 0; top: 0; bottom: 0; width: 30px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,65,0.6));
+      animation: shimmer 1s infinite;
+    }
+    @keyframes shimmer {
+      from { transform: translateX(-30px); }
+      to   { transform: translateX(30px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 18px;
+      border-radius: var(--radius);
+      font-family: var(--font-mono); font-size: 12px;
+      font-weight: 500; letter-spacing: 0.06em;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+    .btn-primary {
+      background: transparent;
+      color: var(--green-bright);
+      border: 1px solid var(--green-mid);
+      box-shadow: 0 0 12px rgba(0,200,50,0.1);
+    }
+    .btn-primary:hover {
+      background: var(--green-glow-sm);
+      border-color: var(--green-bright);
+      box-shadow: 0 0 20px var(--green-glow);
+      text-shadow: 0 0 8px var(--green-bright);
+    }
+    .btn-primary:active { box-shadow: none; }
+    .btn-primary:disabled {
+      opacity: 0.25; cursor: not-allowed;
+      box-shadow: none; text-shadow: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      color: var(--green-mid);
+      border-color: var(--border-accent);
+      background: var(--bg-hover);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(255,34,68,0.4);
+    }
+    .btn-danger:hover {
+      background: var(--danger-glow);
+      border-color: var(--danger);
+      box-shadow: 0 0 12px var(--danger-glow);
+    }
+
+    .btn-success {
+      background: transparent;
+      color: var(--green-bright);
+      border: 1px solid var(--green-dim);
+    }
+    .btn-success:hover {
+      background: var(--green-glow-sm);
+      border-color: var(--green-bright);
+    }
+
+    .btn-sm { padding: 6px 13px; font-size: 11px; }
+    .btn-full { width: 100%; justify-content: center; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ═══════════════════════════════════════════════════════
+       TOGGLE SWITCH
+    ═══════════════════════════════════════════════════════ */
+    .toggle-group {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .toggle-group:last-child { border-bottom: none; }
+    .toggle-label {
+      font-family: var(--font-mono); font-size: 12px;
+      color: #a0dba8;
+    }
+    .toggle-sub {
+      font-family: var(--font-mono); font-size: 10px;
+      color: #4db863; margin-top: 3px;
+    }
+    .toggle {
+      width: 40px; height: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      position: relative; cursor: pointer;
+      transition: border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle.on {
+      border-color: var(--green-mid);
+      box-shadow: 0 0 8px rgba(0,200,50,0.2);
+    }
+    .toggle::after {
+      content: '';
+      position: absolute; top: 3px; left: 3px;
+      width: 12px; height: 12px;
+      background: var(--text-muted);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle.on::after {
+      background: var(--green-bright);
+      transform: translateX(20px);
+      box-shadow: 0 0 6px var(--green-bright);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FORM INPUTS
+    ═══════════════════════════════════════════════════════ */
+    .form-group { margin-bottom: 13px; }
+    .form-label {
+      font-family: var(--font-mono); font-size: 9.5px;
+      color: #4db863; text-transform: uppercase;
+      letter-spacing: 0.14em; display: block; margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--green-mid);
+      padding: 8px 11px;
+      border-radius: var(--radius);
+      font-family: var(--font-mono); font-size: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      caret-color: var(--green-bright);
+    }
+    .form-input::placeholder { color: var(--text-dim); }
+    .form-input:focus {
+      border-color: var(--green-mid);
+      box-shadow: 0 0 0 2px rgba(0,200,50,0.1);
+    }
+    .form-input.mono { font-family: var(--font-mono); }
+    .input-row { display: flex; gap: 10px; }
+    .input-row .form-input { flex: 1; }
+
+    /* ═══════════════════════════════════════════════════════
+       LOG CONSOLE
+    ═══════════════════════════════════════════════════════ */
+    #log-container {
+      background: var(--bg-void);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .log-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+    }
+    .log-title {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--green-dim); letter-spacing: 0.14em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 7px;
+    }
+    #log-output {
+      height: 170px; overflow-y: auto;
+      padding: 10px 14px;
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.9;
+    }
+    .log-line { display: flex; gap: 12px; }
+    .log-time { color: var(--text-dim); flex-shrink: 0; }
+    .log-msg          { color: #6abf78; }
+    .log-msg.success  { color: var(--green-mid); }
+    .log-msg.error    { color: var(--danger); }
+    .log-msg.info     { color: var(--accent-2); }
+    .log-msg.warn     { color: var(--warning); }
+
+    /* Blinking cursor at end of last log line */
+    #log-output::after {
+      content: '█';
+      color: var(--green-bright);
+      animation: blink-cursor 1.2s step-end infinite;
+      font-size: 10px;
+    }
+    @keyframes blink-cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ═══════════════════════════════════════════════════════
+       HISTORY TABLE
+    ═══════════════════════════════════════════════════════ */
+    .history-header {
+      display: grid;
+      grid-template-columns: 1fr 80px 70px 110px 100px;
+      padding: 8px 16px;
+      font-family: var(--font-mono); font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--text-muted);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .history-item {
+      display: grid;
+      grid-template-columns: 1fr 80px 70px 110px 100px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      font-family: var(--font-mono); font-size: 11.5px;
+      transition: background 0.1s;
+    }
+    .history-item:hover { background: var(--bg-hover); }
+    .history-item:last-child { border-bottom: none; }
+    .history-name {
+      color: var(--text-secondary); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      padding-right: 8px; display: flex; align-items: center; gap: 7px;
+    }
+    .history-size { font-size: 10.5px; color: var(--text-muted); }
+    .history-time { font-size: 10px; color: var(--text-muted); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 2px;
+      font-family: var(--font-mono); font-size: 9px;
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .badge-enc   { background: rgba(0,200,50,0.08); color: var(--green-mid); border: 1px solid var(--border-accent); }
+    .badge-plain { background: rgba(255,255,255,0.03); color: var(--text-muted); border: 1px solid var(--border); }
+    .badge-sent  { background: rgba(0,200,50,0.06); color: var(--green-dim); }
+    .badge-recv  { background: rgba(0,229,255,0.06); color: var(--accent-2); }
+
+    /* ═══════════════════════════════════════════════════════
+       SERVER STATUS
+    ═══════════════════════════════════════════════════════ */
+    .server-status-indicator {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      font-family: var(--font-mono);
+    }
+    .server-status-indicator .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--text-dim); transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .server-status-indicator.online .dot {
+      background: var(--green-bright);
+      box-shadow: 0 0 8px var(--green-bright);
+    }
+    .server-status-indicator.offline .dot { background: var(--danger); }
+
+    .connected-clients-list { display: flex; flex-direction: column; gap: 6px; }
+    .client-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-mono); font-size: 11.5px;
+    }
+    .client-row .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green-bright);
+      box-shadow: 0 0 4px var(--green-bright);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       INCOMING FILES
+    ═══════════════════════════════════════════════════════ */
+    .incoming-file {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--green-dim);
+      border-radius: var(--radius);
+      margin-bottom: 7px;
+      animation: slideIn 0.2s ease;
+    }
+    .incoming-file .file-info { flex: 1; min-width: 0; }
+    .incoming-file .file-info .name {
+      font-family: var(--font-mono); font-size: 12.5px;
+      color: #c8ffce;
+    }
+    .incoming-file .file-info .meta {
+      font-family: var(--font-mono); font-size: 10px;
+      color: #4db863; margin-top: 3px;
+    }
+    .incoming-empty {
+      text-align: center; padding: 48px 24px;
+      color: var(--text-muted); font-family: var(--font-mono); font-size: 12px;
+    }
+    .incoming-empty .icon-wrap {
+      color: var(--text-dim); margin-bottom: 14px;
+      display: flex; justify-content: center;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       TOASTS
+    ═══════════════════════════════════════════════════════ */
+    #toast-container {
+      position: fixed; bottom: 22px; right: 22px;
+      display: flex; flex-direction: column; gap: 7px;
+      z-index: 9999; pointer-events: none;
+    }
+    .toast {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius);
+      padding: 11px 16px;
+      font-family: var(--font-mono); font-size: 12px;
+      display: flex; align-items: center; gap: 10px;
+      pointer-events: all;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 12px var(--green-glow);
+      animation: toastIn 0.25s ease;
+      max-width: 320px;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(16px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .toast.success { border-left: 2px solid var(--success); color: var(--green-mid); }
+    .toast.error   { border-left: 2px solid var(--danger); border-color: rgba(255,34,68,0.4); }
+    .toast.info    { border-left: 2px solid var(--accent-2); }
+    .toast-icon    { flex-shrink: 0; }
+    .toast-fadeout { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(16px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       MISC
+    ═══════════════════════════════════════════════════════ */
+    .section-gap { margin-bottom: 18px; }
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .text-muted  { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+    .text-accent { color: var(--green-bright); }
+    .text-success{ color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .flex-between{ display: flex; align-items: center; justify-content: space-between; }
+    .flex-gap    { display: flex; align-items: center; gap: 10px; }
+
+    .enc-active {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--green-bright); font-weight: 500;
+      text-shadow: 0 0 8px var(--green-bright);
+    }
+    .enc-active::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green-bright);
+      box-shadow: 0 0 6px var(--green-bright);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; box-shadow: 0 0 6px var(--green-bright); }
+      50% { opacity: 0.5; box-shadow: 0 0 2px var(--green-bright); }
+    }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 1.5px solid rgba(0,200,50,0.2);
+      border-top-color: var(--green-bright);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* "Glitch" hover on stat values */
+    .stat-value:hover {
+      animation: glitch 0.3s steps(1) forwards;
+    }
+    @keyframes glitch {
+      0%  { text-shadow: -2px 0 var(--danger), 2px 0 var(--accent-2); }
+      33% { text-shadow: 2px 0 var(--danger), -2px 0 var(--accent-2); }
+      66% { text-shadow: 0 2px var(--danger), 0 -2px var(--accent-2); }
+      100%{ text-shadow: 0 0 16px rgba(0,255,65,0.5); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ─── CUSTOM TITLEBAR ──────────────────────────────────────────────────── -->
+  <div id="titlebar">
+    <div class="titlebar-logo">
+      <!-- Custom lock+signal logo -->
+      <div class="logo-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer ring with gap -->
+          <circle cx="11" cy="11" r="9.5" stroke="#00ff41" stroke-width="1" stroke-dasharray="42 18" stroke-linecap="round" class="logo-ring"/>
+          <!-- Lock body -->
+          <rect x="7" y="11" width="8" height="6" rx="1" fill="none" stroke="#00ff41" stroke-width="1.3"/>
+          <!-- Lock shackle -->
+          <path d="M8.5 11V8.5a2.5 2.5 0 015 0V11" stroke="#00ff41" stroke-width="1.3" stroke-linecap="round"/>
+          <!-- Keyhole dot -->
+          <circle cx="11" cy="14" r="1" fill="#00ff41"/>
+        </svg>
+      </div>
+      <span class="logo-text">SECURETRANSFER</span>
+    </div>
+    <div class="titlebar-status">
+      <div class="status-dot" id="conn-dot"></div>
+      <span id="conn-label">OFFLINE</span>
+      &nbsp;//&nbsp;
+      <span id="clients-label">0 PEERS</span>
+    </div>
+    <div class="titlebar-controls">
+      <!-- Theme toggle -->
+      <button class="tb-btn theme-btn" id="titlebar-theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <svg id="theme-icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <div class="tb-divider"></div>
+      <button class="tb-btn min"   onclick="tbAction('min')"   title="Minimize">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="tb-btn max"   onclick="tbAction('max')"   title="Maximize">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
+      </button>
+      <button class="tb-btn close" onclick="tbAction('close')" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── MAIN APP ─────────────────────────────────────────────────────────── -->
+  <div id="app">
+
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+      <div class="sidebar-section-label">// Transfer</div>
+      <div class="nav-item active" onclick="switchTab('send')" id="nav-send">
+        <svg class="icon nav-icon"><use href="#icon-send"/></svg>
+        Send Files
+        <span class="nav-badge" id="queue-badge" style="display:none">0</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('receive')" id="nav-receive">
+        <svg class="icon nav-icon"><use href="#icon-inbox"/></svg>
+        Received
+        <span class="nav-badge" id="recv-badge" style="display:none">0</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('history')" id="nav-history">
+        <svg class="icon nav-icon"><use href="#icon-history"/></svg>
+        History
+      </div>
+
+      <div class="sidebar-section-label" style="margin-top:8px">// System</div>
+      <div class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+        <svg class="icon nav-icon"><use href="#icon-settings"/></svg>
+        Settings
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="client-info">
+          <div class="client-info-label">Session ID</div>
+          <div class="client-id" id="my-client-id">—</div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div id="main">
+
+      <!-- ══ SEND TAB ══════════════════════════════════════════════════════════ -->
+      <div id="tab-send" class="tab-panel active">
+        <div class="page-header">
+          <div>
+            <h1>SEND FILES</h1>
+            <p>// upload &amp; transmit with optional AES-256-CBC encryption</p>
+          </div>
+          <div class="flex-gap">
+            <span id="enc-status-badge"></span>
+          </div>
+        </div>
+        <div class="page-content">
+
+          <!-- Stats Row -->
+          <div class="grid-3 section-gap">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-sent">0</div>
+              <div class="stat-label">Files Sent</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-size">0 B</div>
+              <div class="stat-label">Data Transferred</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-peers">0</div>
+              <div class="stat-label">Connected Peers</div>
+            </div>
+          </div>
+
+          <!-- Drop Zone -->
+          <div id="drop-zone">
+            <div class="drop-icon">
+              <svg class="icon icon-xl"><use href="#icon-upload"/></svg>
+            </div>
+            <h3>DROP FILES TO TRANSMIT</h3>
+            <p>// or click to browse — supports multiple files up to 500 MB</p>
+            <input type="file" id="file-input" multiple />
+          </div>
+
+          <!-- File Queue -->
+          <div id="file-queue"></div>
+
+          <!-- Progress -->
+          <div class="progress-wrap" id="progress-wrap" style="display:none">
+            <div class="progress-label">
+              <span id="progress-text">INITIALIZING...</span>
+              <span id="progress-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="btn-row section-gap">
+            <button class="btn btn-primary" id="send-btn" onclick="sendFiles()" disabled>
+              <svg class="icon icon-sm"><use href="#icon-send"/></svg>
+              Transmit
+            </button>
+            <button class="btn btn-ghost" onclick="clearQueue()">
+              <svg class="icon icon-sm"><use href="#icon-trash"/></svg>
+              Clear Queue
+            </button>
+          </div>
+
+          <!-- Log Console -->
+          <div id="log-container">
+            <div class="log-header">
+              <span class="log-title">
+                <svg class="icon icon-sm"><use href="#icon-terminal"/></svg>
+                TRANSFER LOG
+              </span>
+              <button class="btn btn-ghost btn-sm" onclick="clearLog()">Clear</button>
+            </div>
+            <div id="log-output"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ RECEIVE TAB ════════════════════════════════════════════════════════ -->
+      <div id="tab-receive" class="tab-panel">
+        <div class="page-header">
+          <div>
+            <h1>RECEIVED FILES</h1>
+            <p>// inbound transmissions — click to download</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadHistory()">
+            <svg class="icon icon-sm"><use href="#icon-refresh"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div class="page-content">
+
+          <div class="card section-gap" id="decrypt-card">
+            <div class="card-title">
+              <svg class="icon icon-sm"><use href="#icon-key"/></svg>
+              Decryption Keys
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">AES Key (hex)</label>
+                <input type="text" class="form-input mono" id="dl-key" placeholder="64-char hex key..." />
+              </div>
+              <div class="form-group">
+                <label class="form-label">IV (hex)</label>
+                <input type="text" class="form-input mono" id="dl-iv" placeholder="32-char hex IV..." />
+              </div>
+            </div>
+            <p class="text-muted">// leave blank to download encrypted payload as-is</p>
+          </div>
+
+          <div id="incoming-list">
+            <div class="incoming-empty">
+              <div class="icon-wrap">
+                <svg class="icon icon-xl"><use href="#icon-inbox"/></svg>
+              </div>
+              <div>NO INCOMING TRANSMISSIONS</div>
+              <div style="margin-top:6px;font-size:10px;color:var(--text-dim)">// awaiting inbound files from connected peers</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ HISTORY TAB ════════════════════════════════════════════════════════ -->
+      <div id="tab-history" class="tab-panel">
+        <div class="page-header">
+          <div>
+            <h1>TRANSFER HISTORY</h1>
+            <p>// log of all sent and received files this session</p>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="clearHistory()">
+            <svg class="icon icon-sm"><use href="#icon-trash"/></svg>
+            Clear
+          </button>
+        </div>
+        <div class="page-content">
+          <div class="card" style="padding:0;overflow:hidden">
+            <div class="history-header">
+              <span>Filename</span><span>Size</span><span>Encrypted</span><span>Time</span><span>Action</span>
+            </div>
+            <div id="history-list">
+              <div class="incoming-empty">
+                <div class="icon-wrap">
+                  <svg class="icon icon-xl"><use href="#icon-history"/></svg>
+                </div>
+                <div>NO RECORDS FOUND</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS TAB ═══════════════════════════════════════════════════════ -->
+      <div id="tab-settings" class="tab-panel">
+        <div class="page-header">
+          <div>
+            <h1>SETTINGS</h1>
+            <p>// server connection, encryption config, display preferences</p>
+          </div>
+        </div>
+        <div class="page-content">
+
+          <div class="card section-gap">
+            <div class="card-title">
+              <svg class="icon icon-sm"><use href="#icon-wifi"/></svg>
+              Server Connection
+            </div>
+            <div id="server-status-indicator" class="server-status-indicator offline">
+              <div class="dot"></div>
+              <div>
+                <div style="font-size:12px;color:var(--text-secondary)" id="srv-status-text">OFFLINE</div>
+                <div class="text-muted" id="srv-status-sub">// not connected to server</div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Host</label>
+                <input type="text" class="form-input" id="server-host" value="localhost" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Port</label>
+                <input type="text" class="form-input" id="server-port" value="3001" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="connectServer()">
+                <svg class="icon icon-sm"><use href="#icon-zap"/></svg>
+                Connect
+              </button>
+              <button class="btn btn-ghost" onclick="disconnectServer()">
+                <svg class="icon icon-sm"><use href="#icon-x"/></svg>
+                Disconnect
+              </button>
+            </div>
+          </div>
+
+          <div class="card section-gap">
+            <div class="card-title">
+              <svg class="icon icon-sm"><use href="#icon-lock"/></svg>
+              Encryption
+            </div>
+            <div class="toggle-group">
+              <div>
+                <div class="toggle-label">AES-256-CBC Encryption</div>
+                <div class="toggle-sub">// encrypt all outbound file payloads</div>
+              </div>
+              <div class="toggle" id="enc-toggle" onclick="toggleEncryption()"></div>
+            </div>
+
+            <div id="key-panel" style="display:none;margin-top:14px">
+              <div class="form-group">
+                <label class="form-label">AES Key — 256-bit (64 hex chars)</label>
+                <input type="text" class="form-input mono" id="aes-key" placeholder="auto-generated..." readonly />
+              </div>
+              <div class="form-group">
+                <label class="form-label">IV — 128-bit (32 hex chars)</label>
+                <input type="text" class="form-input mono" id="aes-iv" placeholder="auto-generated..." readonly />
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-primary btn-sm" onclick="generateKey()">
+                  <svg class="icon icon-sm"><use href="#icon-shuffle"/></svg>
+                  Regenerate
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="copyKeys()">
+                  <svg class="icon icon-sm"><use href="#icon-copy"/></svg>
+                  Copy Keys
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card section-gap">
+            <div class="card-title">
+              <svg class="icon icon-sm"><use href="#icon-monitor"/></svg>
+              Display
+            </div>
+            <div class="toggle-group">
+              <div>
+                <div class="toggle-label">Light Mode</div>
+                <div class="toggle-sub">// switch to phosphor-on-white terminal theme</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg class="icon icon-sm" style="color:var(--text-muted)"><use href="#icon-moon"/></svg>
+                <div class="toggle" id="theme-toggle" onclick="toggleTheme()"></div>
+                <svg class="icon icon-sm" style="color:var(--text-muted)"><use href="#icon-sun"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="card section-gap">
+            <div class="card-title">
+              <svg class="icon icon-sm"><use href="#icon-users"/></svg>
+              Connected Peers (<span id="peer-count">0</span>)
+            </div>
+            <div class="connected-clients-list" id="clients-list">
+              <div class="text-muted">// no peers connected</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- ─── JAVASCRIPT ────────────────────────────────────────────────────────── -->
+  <script>
+  const state = {
+    socket: null, connected: false,
+    encEnabled: false, aesKey: '', aesIv: '',
+    fileQueue: [], sentCount: 0, totalBytes: 0,
+    receivedFiles: [], allHistory: [],
+    serverHost: 'localhost', serverPort: '3001',
+    clientId: null, lightMode: false, newRecvCount: 0
+  };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    log('system initialized', 'info');
+    log('configure server in settings > connect', 'info');
+    updateEncBadge();
+    setTimeout(() => connectServer(), 500);
+  });
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`tab-${name}`)?.classList.add('active');
+    document.getElementById(`nav-${name}`)?.classList.add('active');
+    if (name === 'receive') {
+      state.newRecvCount = 0;
+      document.getElementById('recv-badge').style.display = 'none';
+    }
+    if (name === 'history') loadHistory();
+  }
+
+  function tbAction(action) {
+    if (window.electronAPI) {
+      if (action === 'min')   window.electronAPI.minimize();
+      if (action === 'max')   window.electronAPI.maximize();
+      if (action === 'close') window.electronAPI.close();
+    }
+  }
+
+  function connectServer() {
+    const host = document.getElementById('server-host')?.value.trim() || 'localhost';
+    const port = document.getElementById('server-port')?.value.trim() || '3001';
+    state.serverHost = host; state.serverPort = port;
+    const url = `http://${host}:${port}`;
+    if (state.socket) state.socket.disconnect();
+    log(`connecting to ${url}...`, 'info');
+    state.socket = io(url, { transports: ['websocket', 'polling'] });
+
+    state.socket.on('connect', () => {
+      state.connected = true; state.clientId = state.socket.id;
+      setConnStatus(true);
+      document.getElementById('my-client-id').textContent = state.socket.id.slice(0, 12) + '...';
+      log(`connected :: ${url}`, 'success');
+      toast('connected to server', 'success');
+      setServerStatusUI(true);
+    });
+    state.socket.on('disconnect', () => {
+      state.connected = false; setConnStatus(false);
+      log('disconnected from server', 'warn');
+      setServerStatusUI(false);
+    });
+    state.socket.on('connect_error', (err) => {
+      log(`connection error :: ${err.message}`, 'error');
+      toast(`cannot connect :: ${err.message}`, 'error');
+      setServerStatusUI(false);
+    });
+    state.socket.on('file:received', (record) => {
+      state.receivedFiles.unshift(record);
+      state.allHistory.unshift(record);
+      renderIncoming();
+      state.newRecvCount++;
+      const b = document.getElementById('recv-badge');
+      b.textContent = state.newRecvCount; b.style.display = '';
+      log(`[RX] ${record.originalName} :: ${fmtSize(record.size)} enc=${record.encrypted}`, 'info');
+      toast(`received :: ${record.originalName}`, 'info');
+    });
+    state.socket.on('file:sent:ack', ({ success, record }) => {
+      if (success) {
+        state.sentCount++; state.totalBytes += record.size;
+        state.allHistory.unshift(record);
+        updateStats(); renderHistory();
+        log(`[TX OK] ${record.originalName} :: ${fmtSize(record.size)}`, 'success');
+      }
+    });
+    state.socket.on('file:error', ({ error }) => {
+      log(`[ERR] ${error}`, 'error'); toast(error, 'error');
+    });
+    state.socket.on('clients:update', ({ count, clients }) => {
+      document.getElementById('clients-label').textContent = `${count} PEERS`;
+      document.getElementById('stat-peers').textContent = count;
+      document.getElementById('peer-count').textContent = count;
+      renderClientsList(clients);
+    });
+    state.socket.on('history:sync', (history) => {
+      state.allHistory = [...history]; renderHistory();
+    });
+  }
+
+  function disconnectServer() {
+    if (state.socket) { state.socket.disconnect(); state.socket = null; }
+    setConnStatus(false); setServerStatusUI(false);
+    log('manually disconnected', 'warn');
+  }
+
+  function setConnStatus(online) {
+    const dot = document.getElementById('conn-dot');
+    const label = document.getElementById('conn-label');
+    dot.className = 'status-dot ' + (online ? 'connected' : '');
+    label.textContent = online ? `${state.serverHost}:${state.serverPort}` : 'OFFLINE';
+  }
+
+  function setServerStatusUI(online) {
+    const el   = document.getElementById('server-status-indicator');
+    const text = document.getElementById('srv-status-text');
+    const sub  = document.getElementById('srv-status-sub');
+    el.className = `server-status-indicator ${online ? 'online' : 'offline'}`;
+    text.textContent = online ? 'ONLINE' : 'OFFLINE';
+    sub.textContent  = online ? `// ${state.serverHost}:${state.serverPort}` : '// not connected to server';
+  }
+
+  /* ── Drop Zone & File Queue ──────────────────────────────────────────────── */
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    addFilesToQueue([...e.dataTransfer.files]);
+  });
+  fileInput.addEventListener('change', () => {
+    addFilesToQueue([...fileInput.files]); fileInput.value = '';
+  });
+
+  function addFilesToQueue(files) {
+    files.forEach(f => state.fileQueue.push({ file: f, id: Math.random().toString(36).slice(2) }));
+    renderQueue();
+    log(`queued ${files.length} file(s)`, 'info');
+  }
+
+  function removeFromQueue(id) {
+    state.fileQueue = state.fileQueue.filter(f => f.id !== id); renderQueue();
+  }
+
+  function clearQueue() { state.fileQueue = []; renderQueue(); }
+
+  function renderQueue() {
+    const container = document.getElementById('file-queue');
+    const sendBtn   = document.getElementById('send-btn');
+    const badge     = document.getElementById('queue-badge');
+    if (state.fileQueue.length === 0) {
+      container.innerHTML = ''; sendBtn.disabled = true; badge.style.display = 'none'; return;
+    }
+    sendBtn.disabled = !state.connected;
+    badge.textContent = state.fileQueue.length; badge.style.display = '';
+    container.innerHTML = state.fileQueue.map(({ file, id }) => `
+      <div class="file-item">
+        <span class="file-icon">
+          <svg class="icon icon-md"><use href="#icon-file"/></svg>
+        </span>
+        <div class="file-meta">
+          <div class="file-name">${escHtml(file.name)}</div>
+          <div class="file-size">${fmtSize(file.size)} // ${file.type || 'unknown'}</div>
+        </div>
+        <button class="file-remove" onclick="removeFromQueue('${id}')">
+          <svg class="icon icon-sm"><use href="#icon-x"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  /* ── Send ────────────────────────────────────────────────────────────────── */
+  async function sendFiles() {
+    if (!state.connected || !state.socket) { toast('not connected to server', 'error'); return; }
+    if (state.fileQueue.length === 0) { toast('queue is empty', 'error'); return; }
+
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const progressPct  = document.getElementById('progress-pct');
+    progressWrap.style.display = '';
+
+    const total = state.fileQueue.length;
+    document.getElementById('send-btn').disabled = true;
+
+    for (let i = 0; i < total; i++) {
+      const { file } = state.fileQueue[i];
+      progressText.textContent = `TX: ${file.name} [${i+1}/${total}]`;
+      try {
+        const arrayBuf = await readFileAsArrayBuffer(file, (pct) => {
+          const overall = ((i / total) + pct / total) * 100;
+          progressFill.style.width = overall + '%';
+          progressPct.textContent = Math.round(overall) + '%';
+        });
+        const base64 = arrayBufferToBase64(arrayBuf);
+        state.socket.emit('file:send', {
+          fileName: file.name, fileData: base64, fileSize: file.size,
+          mimeType: file.type, encrypted: state.encEnabled,
+          keyHex: state.encEnabled ? state.aesKey : null,
+          ivHex:  state.encEnabled ? state.aesIv  : null
+        });
+        log(`[TX] ${file.name}...`, 'info');
+        progressFill.style.width = ((i + 1) / total * 100) + '%';
+        progressPct.textContent = Math.round((i + 1) / total * 100) + '%';
+      } catch (err) {
+        log(`[ERR] read failed :: ${err.message}`, 'error');
+        toast(`read error :: ${file.name}`, 'error');
+      }
+    }
+
+    progressText.textContent = '// TRANSMISSION COMPLETE';
+    progressFill.style.width = '100%';
+    setTimeout(() => { progressWrap.style.display = 'none'; }, 2500);
+    clearQueue();
+    document.getElementById('send-btn').disabled = false;
+    toast(`transmitted ${total} file${total > 1 ? 's' : ''}`, 'success');
+  }
+
+  function readFileAsArrayBuffer(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('read error'));
+      reader.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
+  /* ── Receive ─────────────────────────────────────────────────────────────── */
+  function renderIncoming() {
+    const list = document.getElementById('incoming-list');
+    if (state.receivedFiles.length === 0) {
+      list.innerHTML = `<div class="incoming-empty"><div class="icon-wrap"><svg class="icon icon-xl"><use href="#icon-inbox"/></svg></div><div>NO INCOMING TRANSMISSIONS</div><div style="margin-top:6px;font-size:10px;color:var(--text-dim)">// awaiting inbound files from connected peers</div></div>`;
+      return;
+    }
+    list.innerHTML = state.receivedFiles.map(r => `
+      <div class="incoming-file">
+        <svg class="icon icon-md" style="color:var(--green-dim);flex-shrink:0"><use href="#icon-file"/></svg>
+        <div class="file-info">
+          <div class="name">${escHtml(r.originalName)}</div>
+          <div class="meta">${fmtSize(r.size)} // ${new Date(r.timestamp).toLocaleTimeString()} // peer:${r.senderId?.slice(0,8) || 'server'}${r.encrypted ? ' // [ENC]' : ''}</div>
+        </div>
+        <div>
+          ${r.encrypted
+            ? `<button class="btn btn-primary btn-sm" onclick="downloadDecrypted('${r.storedName}','${r.originalName}')"><svg class="icon icon-sm"><use href="#icon-unlock"/></svg> Decrypt</button>`
+            : `<a class="btn btn-success btn-sm" href="http://${state.serverHost}:${state.serverPort}${r.downloadUrl}" download="${escHtml(r.originalName)}"><svg class="icon icon-sm"><use href="#icon-download"/></svg> Download</a>`}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function downloadDecrypted(storedName, originalName) {
+    const key = document.getElementById('dl-key').value.trim();
+    const iv  = document.getElementById('dl-iv').value.trim();
+    if (!key || !iv) { toast('enter key and IV first', 'error'); return; }
+    const url = `http://${state.serverHost}:${state.serverPort}/api/download/${storedName}?key=${key}&iv=${iv}`;
+    const a = document.createElement('a');
+    a.href = url; a.download = originalName; a.click();
+    log(`[DL] decrypting :: ${originalName}`, 'success');
+  }
+
+  /* ── History ─────────────────────────────────────────────────────────────── */
+  async function loadHistory() {
+    try {
+      const res = await fetch(`http://${state.serverHost}:${state.serverPort}/api/history`);
+      const data = await res.json();
+      if (data.success) { state.allHistory = data.history; renderHistory(); }
+    } catch(e) {}
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    if (state.allHistory.length === 0) {
+      list.innerHTML = `<div class="incoming-empty"><div class="icon-wrap"><svg class="icon icon-xl"><use href="#icon-history"/></svg></div><div>NO RECORDS FOUND</div></div>`;
+      return;
+    }
+    list.innerHTML = state.allHistory.map(r => `
+      <div class="history-item">
+        <div class="history-name">
+          <svg class="icon icon-sm" style="color:var(--green-dim);flex-shrink:0"><use href="#icon-file"/></svg>
+          <span title="${escHtml(r.originalName)}">${escHtml(r.originalName.length > 28 ? r.originalName.slice(0,26)+'...' : r.originalName)}</span>
+        </div>
+        <div class="history-size">${fmtSize(r.size)}</div>
+        <div>${r.encrypted ? '<span class="badge badge-enc">AES</span>' : '<span class="badge badge-plain">PLAIN</span>'}</div>
+        <div class="history-time">${new Date(r.timestamp).toLocaleTimeString()}</div>
+        <div><a class="btn btn-ghost btn-sm" href="http://${state.serverHost}:${state.serverPort}${r.downloadUrl}" download><svg class="icon icon-sm"><use href="#icon-download"/></svg></a></div>
+      </div>
+    `).join('');
+  }
+
+  function clearHistory() {
+    state.allHistory = []; state.receivedFiles = [];
+    renderHistory(); renderIncoming();
+  }
+
+  /* ── Encryption ──────────────────────────────────────────────────────────── */
+  function toggleEncryption() {
+    state.encEnabled = !state.encEnabled;
+    document.getElementById('enc-toggle').classList.toggle('on', state.encEnabled);
+    document.getElementById('key-panel').style.display = state.encEnabled ? '' : 'none';
+    if (state.encEnabled && !state.aesKey) generateKey();
+    updateEncBadge();
+    log(`encryption ${state.encEnabled ? 'ENABLED' : 'DISABLED'}`, state.encEnabled ? 'success' : 'warn');
+  }
+
+  async function generateKey() {
+    try {
+      const res = await fetch(`http://${state.serverHost}:${state.serverPort}/api/generate-key`);
+      const data = await res.json();
+      if (data.success) {
+        state.aesKey = data.key; state.aesIv = data.iv;
+        document.getElementById('aes-key').value = data.key;
+        document.getElementById('aes-iv').value  = data.iv;
+        log('new aes-256 keypair generated', 'success');
+        toast('encryption key generated', 'success');
+      }
+    } catch(e) {
+      const ka = crypto.getRandomValues(new Uint8Array(32));
+      const ia = crypto.getRandomValues(new Uint8Array(16));
+      state.aesKey = [...ka].map(b => b.toString(16).padStart(2,'0')).join('');
+      state.aesIv  = [...ia].map(b => b.toString(16).padStart(2,'0')).join('');
+      document.getElementById('aes-key').value = state.aesKey;
+      document.getElementById('aes-iv').value  = state.aesIv;
+      log('key generated client-side (server offline)', 'warn');
+    }
+    updateEncBadge();
+  }
+
+  function copyKeys() {
+    navigator.clipboard.writeText(`KEY: ${state.aesKey}\nIV:  ${state.aesIv}`)
+      .then(() => toast('keys copied to clipboard', 'success'));
+  }
+
+  function updateEncBadge() {
+    const badge = document.getElementById('enc-status-badge');
+    badge.innerHTML = state.encEnabled
+      ? '<span class="enc-active">AES-256 ACTIVE</span>'
+      : '<span class="text-muted">// encryption off</span>';
+  }
+
+  /* ── Peers ───────────────────────────────────────────────────────────────── */
+  function renderClientsList(clients) {
+    const list = document.getElementById('clients-list');
+    if (!clients || clients.length === 0) {
+      list.innerHTML = '<div class="text-muted">// no peers connected</div>'; return;
+    }
+    list.innerHTML = clients.map(c => `
+      <div class="client-row">
+        <div class="dot"></div>
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-mono)">${escHtml(c.name)}</div>
+          <div class="text-muted">${c.id.slice(0,16)}...</div>
+        </div>
+        <div class="text-muted" style="margin-left:auto">${timeSince(c.connectedAt)}</div>
+      </div>
+    `).join('');
+  }
+
+  /* ── Theme ───────────────────────────────────────────────────────────────── */
+  function toggleTheme() {
+    state.lightMode = !state.lightMode;
+    document.body.classList.toggle('light-mode', state.lightMode);
+    document.getElementById('theme-toggle').classList.toggle('on', state.lightMode);
+    // Swap titlebar icon: show sun in dark mode (click to go light), moon in light mode
+    document.getElementById('theme-icon-sun').style.display  = state.lightMode ? '' : 'none';
+    document.getElementById('theme-icon-moon').style.display = state.lightMode ? 'none' : '';
+    log(`theme :: ${state.lightMode ? 'LIGHT' : 'DARK'} mode activated`, 'info');
+  }
+
+  /* ── Log ─────────────────────────────────────────────────────────────────── */
+  function log(msg, type = '') {
+    const out = document.getElementById('log-output');
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `<span class="log-time">${time}</span><span class="log-msg ${type}">${escHtml(msg)}</span>`;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  function clearLog() { document.getElementById('log-output').innerHTML = ''; }
+
+  /* ── Toast ───────────────────────────────────────────────────────────────── */
+  function toast(msg, type = 'info') {
+    const icons = {
+      success: '<svg class="icon icon-sm" style="color:var(--green-bright)"><use href="#icon-check"/></svg>',
+      error:   '<svg class="icon icon-sm" style="color:var(--danger)"><use href="#icon-alert"/></svg>',
+      info:    '<svg class="icon icon-sm" style="color:var(--accent-2)"><use href="#icon-terminal"/></svg>',
+      warn:    '<svg class="icon icon-sm" style="color:var(--warning)"><use href="#icon-alert"/></svg>'
+    };
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span>${escHtml(msg)}</span>`;
+    container.appendChild(el);
+    setTimeout(() => { el.classList.add('toast-fadeout'); setTimeout(() => el.remove(), 300); }, 3500);
+  }
+
+  /* ── Stats ───────────────────────────────────────────────────────────────── */
+  function updateStats() {
+    document.getElementById('stat-sent').textContent = state.sentCount;
+    document.getElementById('stat-size').textContent = fmtSize(state.totalBytes);
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────────────────────── */
+  function fmtSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024, sizes = ['B','KB','MB','GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function timeSince(iso) {
+    const d = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (d < 60) return `${d}s`;
+    if (d < 3600) return `${Math.floor(d/60)}m`;
+    return `${Math.floor(d/3600)}h`;
+  }
+  </script>
+</body>
+</html>

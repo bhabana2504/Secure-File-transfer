@@ -1,0 +1,51 @@
+{
+  "name": "secure-file-transfer",
+  "version": "1.0.0",
+  "description": "Secure File Transfer Desktop App (Electron + Node.js + Socket.IO)",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "electron": "electron .",
+    "backend": "node backend/server.js",
+    "dev": "concurrently \"node backend/server.js\" \"wait-on http://localhost:3001/api/health && electron .\""
+  },
+  "build": {
+    "appId": "com.securetransfer.app",
+    "productName": "SecureTransfer",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/**/*",
+      "backend/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "dependencies": {
+    "concurrently": "^8.2.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "socket.io": "^4.8.3",
+    "uuid": "^8.3.2",
+    "wait-on": "^7.0.1"
+  },
+  "devDependencies": {
+    "electron": "^27.3.11",
+    "electron-builder": "^26.8.1",
+    "nodemon": "^3.1.14"
+  },
+  "author": "Secure File Transfer",
+  "license": "MIT"
+}
