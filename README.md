@@ -118,17 +118,17 @@ SENDER                          SERVER                        RECEIVER
 ```
 Secure-File-transfer/
 ├── electron/
-│   └── main.js           # Electron main process — window, IPC, spawns backend
+│   └── main.js          
 ├── frontend/
-│   └── index.html        # Full single-file UI (dark/light terminal theme)
+│   └── index.html        
 ├── backend/
-│   └── server.js         # Express + Socket.IO server, AES crypto, file I/O
-├── preload.js            # contextBridge — exposes safe Electron APIs to renderer
-├── package.json          # Dependencies, npm scripts, electron-builder config
+│   └── server.js         
+├── preload.js            
+├── package.json          
 ├── package-lock.json
 ├── .gitignore
-├── uploads/              # (auto-created) Temp storage for HTTP multipart uploads
-└── downloads/            # (auto-created) Encrypted files served statically
+├── uploads/              
+└── downloads/            
 ```
 
 ---
@@ -192,7 +192,9 @@ The **History** tab shows the last 50 transfers. History is synced to newly conn
 
 ---
 
-## This project represents a foundational implementation of a secure, real-time file transfer system, with significant scope for further enhancements in scalability, security, and user experience.
+## NOTE :-
+
+ This project represents a foundational implementation of a secure, real-time file transfer system, with significant scope for further enhancements in scalability, security, and user experience.
 
 ---
 
